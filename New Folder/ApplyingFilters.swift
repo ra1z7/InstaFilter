@@ -27,10 +27,15 @@ struct ApplyingFilters: View {
         let beginImage = CIImage(image: inputImage) // This is not a picture yet. It is a cooking recipe. It contains the data ("here are the pixels") and the instructions ("apply sepia tone"). It doesn't actually process the image until you force it to.
         
         let context = CIContext() // This is the Engine or the Chef. The filter below describes what to do, but the Context is the heavy-lifter that actually talks to the GPU to calculate the math. Because converting a "recipe" (CIImage) into actual pixels (CGImage) is computationally expensive. The CIContext manages this work efficiently.
-        let currentFilter = CIFilter.sepiaTone()
+        let currentFilter = CIFilter.crystallize() // we can change filter between sepiaTone(), crystallize(), pixellate() freely
         currentFilter.inputImage = beginImage
-        currentFilter.intensity = 1
-        // At this exact moment, nothing has happened yet. The image hasn't changed. We have simply updated the "recipe" to say: "Take the input image and apply Sepia at 100% intensity."
+        
+        let filterAmount = 1.0
+        let filterInputKeys = currentFilter.inputKeys
+        
+        if filterInputKeys.contains(kCIInputIntensityKey) { currentFilter.setValue(filterAmount, forKey: kCIInputIntensityKey) }
+        if filterInputKeys.contains(kCIInputScaleKey) { currentFilter.setValue(filterAmount * 50, forKey: kCIInputScaleKey) }
+        if filterInputKeys.contains(kCIInputRadiusKey) { currentFilter.setValue(filterAmount * 100, forKey: kCIInputRadiusKey) }
         
         guard let outputImage = currentFilter.outputImage else { return } // We ask the filter for its output. This is still a CIImage (a recipe).
         
