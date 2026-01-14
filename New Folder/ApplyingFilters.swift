@@ -30,12 +30,23 @@ struct ApplyingFilters: View {
         let currentFilter = CIFilter.crystallize() // we can change filter between sepiaTone(), crystallize(), pixellate() freely
         currentFilter.inputImage = beginImage
         
-        let filterAmount = 1.0
-        let filterInputKeys = currentFilter.inputKeys
+        // Using the modern API is great if you know exactly which filter you are using. You can type currentFilter. and Xcode will autocomplete the correct properties for you.
         
-        if filterInputKeys.contains(kCIInputIntensityKey) { currentFilter.setValue(filterAmount, forKey: kCIInputIntensityKey) }
+        // However, the goal of this specific project is to let the user pick a filter. If the user picks "Sepia", we need to set intensity. If they pick "Twirl", we need to set radius. Writing a massive if/else statement for every possible filter would be a nightmare. This brings us to the "Old" API:
+        
+        let filterAmount = 1.0
+        
+        // The "Old" API treats every filter like a dictionary (or a hash map). Instead of properties, it uses Keys (Strings):
+        let filterInputKeys = currentFilter.inputKeys // Ask the filter for a list of supported settings
+        
+        if filterInputKeys.contains(kCIInputIntensityKey) { currentFilter.setValue(filterAmount, forKey: kCIInputIntensityKey) } // "Hey Filter, do you have an 'Intensity' knob? If yes, set it to amount."
+        // If the current filter is Sepia, this runs.
+        // If the current filter is Twirl, this is ignored (Twirls don't have intensity).
+        
         if filterInputKeys.contains(kCIInputScaleKey) { currentFilter.setValue(filterAmount * 50, forKey: kCIInputScaleKey) }
         if filterInputKeys.contains(kCIInputRadiusKey) { currentFilter.setValue(filterAmount * 100, forKey: kCIInputRadiusKey) }
+        
+        // The code automatically figures out which values apply to the current filter and ignores the rest.
         
         guard let outputImage = currentFilter.outputImage else { return } // We ask the filter for its output. This is still a CIImage (a recipe).
         
