@@ -27,21 +27,41 @@ import PhotosUI // Provides: PhotosPicker, PhotosPickerItem, Filtering options l
 import SwiftUI
 
 struct PhotoImportDemo: View {
-    @State private var pickerItem: PhotosPickerItem? // A reference to the selected photo, NOT the photo itself (For Selection)
-    @State private var selectedImage: Image? // Actual Image to display (For Display)
+    @State private var pickerItems = [PhotosPickerItem]() // A reference to the selected photo, NOT the photo itself (For Selection)
+    @State private var selectedImages = [Image]() // Actual Image to display (For Display)
     // Initially, the user hasn’t picked anything yet, hence both are optional
     
     var body: some View {
-        PhotosPicker("Select An Image", selection: $pickerItem, matching: .images)
-            .onChange(of: pickerItem) {
+        PhotosPicker("Select Images", selection: $pickerItems, maxSelectionCount: 3, matching: .images) // A1. Selecting again replaces the entire selection, not appends
+            .onChange(of: pickerItems) {
                 Task { // Enter background work (don't freeze the screen)
-                    selectedImage = try await pickerItem?.loadTransferable(type: Image.self) // “Please load the underlying data and convert it into a SwiftUI Image.”
+                    selectedImages.removeAll() // A2. That's why we clear previously loaded images to prevent duplication bugs
+                    
+                    for item in pickerItems {
+                        if let loadedImage = try await item.loadTransferable(type: Image.self) {
+                            selectedImages.append(loadedImage)
+                        }
+                    }
                 }
             }
         
-        selectedImage?
-            .resizable() // Allows the image to: Change size, Respect layout constraints. Without this, the image uses its intrinsic size.
-            .scaledToFit() // Keeps: Aspect ratio, Entire image visible
+        /*
+         
+         We can also use custom label:
+         
+         PhotosPicker(selection: $pickerItems, maxSelectionCount: 3, matching: .images) {
+             Label("Select Images", systemImage: "photo")
+         }
+         
+         */
+        
+        ScrollView {
+            ForEach(0..<selectedImages.count, id: \.self) { i in
+                selectedImages[i]
+                    .resizable() // Allows the image to: Change size, Respect layout constraints. Without this, the image uses its intrinsic size.
+                    .scaledToFit() // Keeps: Aspect ratio, Entire image visible
+            }
+        }
     }
 }
 
