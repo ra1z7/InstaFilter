@@ -16,9 +16,9 @@
 			path = InstaFilter;
 			sourceTree = "<group>";
 		};
-		4E94228A2F135B1B00EE691C /* New Folder */ = {
+		4E94228A2F135B1B00EE691C /* Technique Overviews */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = "New Folder";
+			path = "Technique Overviews";
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -39,7 +39,7 @@
 			children = (
 				4E94227E2F11278E00EE691C /* InstaFilter */,
 				4E94227D2F11278E00EE691C /* Products */,
-				4E94228A2F135B1B00EE691C /* New Folder */,
+				4E94228A2F135B1B00EE691C /* Technique Overviews */,
 			);
 			sourceTree = "<group>";
 		};
@@ -68,7 +68,7 @@
 			);
 			fileSystemSynchronizedGroups = (
 				4E94227E2F11278E00EE691C /* InstaFilter */,
-				4E94228A2F135B1B00EE691C /* New Folder */,
+				4E94228A2F135B1B00EE691C /* Technique Overviews */,
 			);
 			name = InstaFilter;
 			packageProductDependencies = (
