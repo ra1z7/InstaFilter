@@ -32,10 +32,17 @@ struct PhotoImportDemo: View {
     // Initially, the user hasn’t picked anything yet, hence both are optional
     
     var body: some View {
-        PhotosPicker("Select Images", selection: $pickerItems, maxSelectionCount: 3, matching: .images) // A1. Selecting again replaces the entire selection, not appends
+        /*
+         | Expression      | Meaning                                |
+         | ----------------| ---------------------------------------|
+         | .any(of: [...]) | OR — match if ANY condition is true    |
+         | .all(of: [...]) | AND — match if ALL conditions are true |
+         | .not(x)         | Exclude 'x'                            |
+         */
+        PhotosPicker("Select Images", selection: $pickerItems, maxSelectionCount: 3, matching: .all(of: [.images, .not(.screenshots)])) // Allow images, Exclude screenshots
             .onChange(of: pickerItems) {
                 Task { // Enter background work (don't freeze the screen)
-                    selectedImages.removeAll() // A2. That's why we clear previously loaded images to prevent duplication bugs
+                    selectedImages.removeAll()
                     
                     for item in pickerItems {
                         if let loadedImage = try await item.loadTransferable(type: Image.self) {
@@ -50,7 +57,7 @@ struct PhotoImportDemo: View {
          We can also use custom label:
          
          PhotosPicker(selection: $pickerItems, maxSelectionCount: 3, matching: .images) {
-             Label("Select Images", systemImage: "photo")
+            Label("Select Images", systemImage: "photo")
          }
          
          */
