@@ -5,6 +5,8 @@
 //  Created by Purnaman Rai (College) on 09/01/2026.
 //
 
+import CoreImage
+import CoreImage.CIFilterBuiltins
 import PhotosUI
 import SwiftUI
 
@@ -12,6 +14,11 @@ struct ContentView: View {
     @State private var selectedImage: PhotosPickerItem?
     @State private var processedImage: Image?
     @State private var filterIntensity = 0.5
+    
+    @State private var currentFilter = CIFilter.sepiaTone()
+    let ciContext = CIContext() // A Core Image context is an object that’s responsible for rendering a CIImage to a CGImage (an object for converting the recipe for an image into an actual series of pixels we can work with).
+    
+    // Contexts are expensive to create, so if you intend to render many images it’s a good idea to create a context once and keep it alive and reuse many times.
     
     var body: some View {
         NavigationStack {
@@ -42,6 +49,8 @@ struct ContentView: View {
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                     Slider(value: $filterIntensity)
+                        .onChange(of: filterIntensity, applyFilter)
+                    // Tip: If multiple views adjust the same value, or if it’s not quite so specific what is changing the value, then I’d add the modifier at the end of the view.
                 }
                 .padding(.vertical)
                 
@@ -59,11 +68,28 @@ struct ContentView: View {
     
     func loadImage() {
         Task {
-            processedImage = try await selectedImage?.loadTransferable(type: Image.self)
+            guard let imageAsData = try await selectedImage?.loadTransferable(type: Data.self) else { return }
+            guard let uiImage = UIImage(data: imageAsData) else { return }
+            let ciImage = CIImage(image: uiImage)
+            
+            // Core Image filters have a dedicated inputImage property that lets us send in a CIImage for the filter to work with, but often this is thoroughly broken and will cause your app to crash – it’s much safer to use the filter’s setValue() method with the key kCIInputImageKey.
+            currentFilter.setValue(ciImage, forKey: kCIInputImageKey)
+            applyFilter()
         }
+    }
+    
+    func applyFilter() {
+        currentFilter.intensity = Float(filterIntensity)
+        
+        guard let ciImage = currentFilter.outputImage else { return }
+        guard let cgImage = ciContext.createCGImage(ciImage, from: ciImage.extent) else { return }
+        
+        let uiImage = UIImage(cgImage: cgImage)
+        processedImage = Image(uiImage: uiImage)
     }
 }
 
 #Preview {
+    // Core Image is extremely fast on all iPhones, but it’s often extremely slow in the simulator.
     ContentView()
 }
