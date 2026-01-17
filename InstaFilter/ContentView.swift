@@ -5,27 +5,38 @@
 //  Created by Purnaman Rai (College) on 09/01/2026.
 //
 
+import PhotosUI
 import SwiftUI
 
 struct ContentView: View {
+    @State private var selectedImage: PhotosPickerItem?
     @State private var processedImage: Image?
     @State private var filterIntensity = 0.5
-
+    
     var body: some View {
         NavigationStack {
             VStack {
-                if let processedImage {
-                    processedImage
-                        .resizable()
-                        .scaledToFit()
-                } else {
-                    ContentUnavailableView(
-                        "No Photo Selected",
-                        systemImage: "photo.badge.plus",
-                        description: Text("Tap to import a Photo")
-                    )
+                Spacer()
+                
+                PhotosPicker(selection: $selectedImage) {
+                    if let processedImage {
+                        processedImage
+                            .resizable()
+                            .scaledToFit()
+                            .clipShape(.rect(cornerRadius: 10))
+                    } else {
+                        ContentUnavailableView(
+                            "No Photo Selected",
+                            systemImage: "photo.badge.plus",
+                            description: Text("Tap to import a Photo")
+                        )
+                    }
                 }
-
+                .buttonStyle(.plain) // to disable blue coloring
+                .onChange(of: selectedImage, loadImage)
+                
+                Spacer()
+                
                 VStack {
                     Text("INTENSITY")
                         .font(.footnote)
@@ -33,7 +44,7 @@ struct ContentView: View {
                     Slider(value: $filterIntensity)
                 }
                 .padding(.vertical)
-
+                
                 HStack {
                     Button("Change Filter", systemImage: "camera.filters") {}
                     Spacer()
@@ -43,6 +54,12 @@ struct ContentView: View {
             }
             .padding()
             .navigationTitle("InstaFilter")
+        }
+    }
+    
+    func loadImage() {
+        Task {
+            processedImage = try await selectedImage?.loadTransferable(type: Image.self)
         }
     }
 }
