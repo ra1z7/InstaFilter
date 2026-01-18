@@ -20,6 +20,10 @@ struct ContentView: View {
     
     // Contexts are expensive to create, so if you intend to render many images it’s a good idea to create a context once and keep it alive and reuse many times.
     
+    var currentFilterName: String {
+        currentFilter.attributes[kCIAttributeFilterDisplayName] as! String
+    }
+    
     var body: some View {
         NavigationStack {
             VStack {
@@ -27,10 +31,19 @@ struct ContentView: View {
                 
                 PhotosPicker(selection: $selectedImage) {
                     if let processedImage {
-                        processedImage
-                            .resizable()
-                            .scaledToFit()
-                            .clipShape(.rect(cornerRadius: 10))
+                        VStack {
+                            Text(currentFilterName.uppercased())
+                                .font(.caption)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .clipShape(.capsule)
+                                .glassEffect()
+                            
+                            processedImage
+                                .resizable()
+                                .scaledToFit()
+                                .clipShape(.rect(cornerRadius: 10))
+                        }
                     } else {
                         ContentUnavailableView(
                             "No Photo Selected",
@@ -44,7 +57,7 @@ struct ContentView: View {
                 
                 Spacer()
                 
-                if let processedImage { // Only show UI controls when an Image is loaded
+                if processedImage != nil { // Only show UI controls when an Image is loaded
                     VStack {
                         Text("INTENSITY")
                             .font(.footnote)
