@@ -11,6 +11,19 @@ import PhotosUI
 import StoreKit
 import SwiftUI
 
+extension CIFilter {
+    var displayName: String {
+        self.attributes[kCIAttributeFilterDisplayName] as? String ?? "Unknown Filter"
+        
+        /*
+         Syntax Above:
+            dictionary[key] as? Type ?? defaultValue
+        
+         “Try to read kCIAttributeFilterDisplayName (key) from the attributes (dictionary), cast it to String (Type), and if that fails or is nil, use "Unknown Filter" (defaultValue) instead.”
+         */
+    }
+}
+
 struct ContentView: View {
     @State private var selectedImage: PhotosPickerItem?
     @State private var inputCIImage: CIImage?
@@ -22,10 +35,16 @@ struct ContentView: View {
     
     // Contexts are expensive to create, so if you intend to render many images it’s a good idea to create a context once and keep it alive and reuse many times.
     
-    var currentFilterName: String {
-        // dictionary[key] as? Type ?? defaultValue    - “Try to read key from the dictionary, cast it to Type, and if that fails or is nil, use defaultValue instead.”
-        currentFilter.attributes[kCIAttributeFilterDisplayName] as? String ?? "Unknown Filter" // “Try to treat this value (which is Any?) as a String. If it’s not a String, return nil and use "Unknown Filter" instead of crashing.”
-    }
+    let filterOptions: [CIFilter] = [
+        .sepiaTone(),
+        .vignette(),
+        .crystallize(),
+        .bloom(),
+        .pixellate(),
+        .motionBlur(),
+        .comicEffect(),
+        .hexagonalPixellate()
+    ]
     
     @AppStorage("filterChangeCount") private var filterChangeCount = 0
     @Environment(\.requestReview) var requestReview
@@ -38,7 +57,7 @@ struct ContentView: View {
                 PhotosPicker(selection: $selectedImage) {
                     if let processedImage {
                         VStack {
-                            Text(currentFilterName.uppercased())
+                            Text(currentFilter.displayName.uppercased())
                                 .font(.caption)
                                 .padding(.horizontal, 8)
                                 .padding(.vertical, 4)
@@ -77,20 +96,18 @@ struct ContentView: View {
                     HStack {
                         Button("Change Filter", systemImage: "camera.filters", action: changeFilter)
                             .confirmationDialog("Select a Filter", isPresented: $showingFilterOptions) {
-                                Button("Sepia Tone") { setFilter(CIFilter.sepiaTone()) }
-                                Button("Vignette") { setFilter(CIFilter.vignette()) }
-                                Button("Crystallize") { setFilter(CIFilter.crystallize()) }
-                                Button("Bloom") { setFilter(CIFilter.bloom()) }
-                                Button("Pixellate") { setFilter(CIFilter.pixellate()) }
-                                Button("Edges") { setFilter(CIFilter.edges()) }
-                                Button("Motion Blur") { setFilter(CIFilter.motionBlur()) }
+                                ForEach(filterOptions, id: \.self) { filter in
+                                    Button(filter.displayName) {
+                                        setFilter(filter)
+                                    }
+                                }
                             }
                         
                         Spacer()
                         
                         ShareLink(
                             item: processedImage,
-                            preview: SharePreview("InstaFilter Image - \(currentFilterName)", image: processedImage)
+                            preview: SharePreview("InstaFilter Image - \(currentFilter.displayName)", image: processedImage)
                         ) {
                             Label("Share", systemImage: "square.and.arrow.up")
                         }
