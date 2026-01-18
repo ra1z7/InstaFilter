@@ -14,8 +14,8 @@ struct ContentView: View {
     @State private var selectedImage: PhotosPickerItem?
     @State private var processedImage: Image?
     @State private var filterIntensity = 0.5
-    
-    @State private var currentFilter = CIFilter.sepiaTone()
+    @State private var showingFilterOptions = false
+    @State private var currentFilter: CIFilter = CIFilter.sepiaTone()
     let ciContext = CIContext() // A Core Image context is an object that’s responsible for rendering a CIImage to a CGImage (an object for converting the recipe for an image into an actual series of pixels we can work with).
     
     // Contexts are expensive to create, so if you intend to render many images it’s a good idea to create a context once and keep it alive and reuse many times.
@@ -55,8 +55,19 @@ struct ContentView: View {
                 .padding(.vertical)
                 
                 HStack {
-                    Button("Change Filter", systemImage: "camera.filters") {}
+                    Button("Change Filter", systemImage: "camera.filters", action: changeFilter)
+                        .confirmationDialog("Select a Filter", isPresented: $showingFilterOptions) {
+                            Button("Sepia Tone") { setFilter(CIFilter.sepiaTone()) }
+                            Button("Vignette") { setFilter(CIFilter.vignette()) }
+                            Button("Crystallize") { setFilter(CIFilter.crystallize()) }
+                            Button("Bloom") { setFilter(CIFilter.bloom()) }
+                            Button("Pixellate") { setFilter(CIFilter.pixellate()) }
+                            Button("Edges") { setFilter(CIFilter.edges()) }
+                            Button("Motion Blur") { setFilter(CIFilter.motionBlur()) }
+                        }
+                    
                     Spacer()
+                    
                     Button("Share", systemImage: "square.and.arrow.up") {}
                 }
                 .buttonStyle(.glass)
@@ -79,13 +90,25 @@ struct ContentView: View {
     }
     
     func applyFilter() {
-        currentFilter.intensity = Float(filterIntensity)
+        let inputKeys = currentFilter.inputKeys
+        if inputKeys.contains(kCIInputIntensityKey) { currentFilter.setValue(filterIntensity, forKey: kCIInputIntensityKey) }
+        if inputKeys.contains(kCIInputRadiusKey) { currentFilter.setValue(filterIntensity * 100, forKey: kCIInputRadiusKey) }
+        if inputKeys.contains(kCIInputScaleKey) { currentFilter.setValue(filterIntensity * 50, forKey: kCIInputScaleKey) }
         
         guard let ciImage = currentFilter.outputImage else { return }
         guard let cgImage = ciContext.createCGImage(ciImage, from: ciImage.extent) else { return }
         
         let uiImage = UIImage(cgImage: cgImage)
         processedImage = Image(uiImage: uiImage)
+    }
+    
+    func changeFilter() {
+        showingFilterOptions = true
+    }
+    
+    func setFilter(_ newFilter: CIFilter) {
+        currentFilter = newFilter
+        loadImage()
     }
 }
 
