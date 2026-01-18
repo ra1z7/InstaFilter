@@ -15,7 +15,7 @@ struct ContentView: View {
     @State private var processedImage: Image?
     @State private var filterIntensity = 0.5
     @State private var showingFilterOptions = false
-    @State private var currentFilter: CIFilter = CIFilter.sepiaTone()
+    @State private var currentFilter: CIFilter = CIFilter.sepiaTone() // Type Erasure: “I only care that this is a CIFilter — nothing more.” Meaning, we lose access to .intensity, and type safety but gain ability to store any filter now
     let ciContext = CIContext() // A Core Image context is an object that’s responsible for rendering a CIImage to a CGImage (an object for converting the recipe for an image into an actual series of pixels we can work with).
     
     // Contexts are expensive to create, so if you intend to render many images it’s a good idea to create a context once and keep it alive and reuse many times.
@@ -90,8 +90,18 @@ struct ContentView: View {
     }
     
     func applyFilter() {
+        /*
+         
+         Core Image filters:
+         - Do not all accept the same inputs
+         - Use string keys, not properties
+         
+         When we assign CIFilter.sepiaTone() to a property, we get an object of the class CIFilter that conforms to protocol CISepiaTone.
+         That protocol then exposes the .intensity parameter we’ve been using, but internally it will just map it to a call to setValue(_:forKey:).
+         
+         */
         let inputKeys = currentFilter.inputKeys
-        if inputKeys.contains(kCIInputIntensityKey) { currentFilter.setValue(filterIntensity, forKey: kCIInputIntensityKey) }
+        if inputKeys.contains(kCIInputIntensityKey) { currentFilter.setValue(filterIntensity, forKey: kCIInputIntensityKey) } // kCIInputIntensityKey is another Core Image constant value, and it has the same effect as setting the .intensity parameter of the sepia tone filter. Previously, this was all that the protocol was doing internally anyway, but it did provide valuable extra type safety.
         if inputKeys.contains(kCIInputRadiusKey) { currentFilter.setValue(filterIntensity * 100, forKey: kCIInputRadiusKey) }
         if inputKeys.contains(kCIInputScaleKey) { currentFilter.setValue(filterIntensity * 50, forKey: kCIInputScaleKey) }
         
