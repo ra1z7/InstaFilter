@@ -22,7 +22,8 @@ struct ContentView: View {
     // Contexts are expensive to create, so if you intend to render many images it’s a good idea to create a context once and keep it alive and reuse many times.
     
     var currentFilterName: String {
-        currentFilter.attributes[kCIAttributeFilterDisplayName] as! String
+        // dictionary[key] as? Type ?? defaultValue    - “Try to read key from the dictionary, cast it to Type, and if that fails or is nil, use defaultValue instead.”
+        currentFilter.attributes[kCIAttributeFilterDisplayName] as? String ?? "Unknown Filter" // “Try to treat this value (which is Any?) as a String. If it’s not a String, return nil and use "Unknown Filter" instead of crashing.”
     }
     
     var body: some View {
