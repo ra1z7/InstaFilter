@@ -58,11 +58,12 @@ struct ContentView: View {
                     if let processedImage {
                         VStack {
                             Text(currentFilter.displayName.uppercased())
-                                .font(.caption)
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 4)
+                                .font(.caption.bold())
+                                .foregroundStyle(.secondary)
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 5)
+                                .background(.secondary.opacity(0.2))
                                 .clipShape(.capsule)
-                                .glassEffect()
                             
                             processedImage
                                 .resizable()
@@ -112,7 +113,9 @@ struct ContentView: View {
                             Label("Share", systemImage: "square.and.arrow.up")
                         }
                     }
-                    .buttonStyle(.glass)
+                    .buttonStyle(.bordered)
+                    .buttonBorderShape(.capsule)
+                    .foregroundStyle(.primary)
                 }
             }
             .padding()
