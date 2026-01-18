@@ -8,6 +8,7 @@
 import CoreImage
 import CoreImage.CIFilterBuiltins
 import PhotosUI
+import StoreKit
 import SwiftUI
 
 struct ContentView: View {
@@ -25,6 +26,9 @@ struct ContentView: View {
         // dictionary[key] as? Type ?? defaultValue    - “Try to read key from the dictionary, cast it to Type, and if that fails or is nil, use defaultValue instead.”
         currentFilter.attributes[kCIAttributeFilterDisplayName] as? String ?? "Unknown Filter" // “Try to treat this value (which is Any?) as a String. If it’s not a String, return nil and use "Unknown Filter" instead of crashing.”
     }
+    
+    @AppStorage("filterChangeCount") private var filterChangeCount = 0
+    @Environment(\.requestReview) var requestReview
     
     var body: some View {
         NavigationStack {
@@ -59,7 +63,7 @@ struct ContentView: View {
                 
                 Spacer()
                 
-                if processedImage != nil { // Only show UI controls when an Image is loaded
+                if let processedImage { // Only show UI controls when an Image is loaded
                     VStack {
                         Text("INTENSITY")
                             .font(.footnote)
@@ -84,7 +88,12 @@ struct ContentView: View {
                         
                         Spacer()
                         
-                        Button("Share", systemImage: "square.and.arrow.up") {}
+                        ShareLink(
+                            item: processedImage,
+                            preview: SharePreview("InstaFilter Image - \(currentFilterName)", image: processedImage)
+                        ) {
+                            Label("Share", systemImage: "square.and.arrow.up")
+                        }
                     }
                     .buttonStyle(.glass)
                 }
@@ -135,6 +144,17 @@ struct ContentView: View {
     func setFilter(_ newFilter: CIFilter) {
         currentFilter = newFilter
         applyFilter()
+        filterChangeCount += 1
+        
+        if filterChangeCount >= 20 { // “If the user has ever crossed this threshold, it’s okay.” The system ignores extra requests anyway
+            requestReview()
+        }
+        
+        /*
+         Changing filters is the core action of the app
+         Doing it 20 times implies real engagement
+         The user understands the app’s value
+         */
     }
 }
 
