@@ -44,33 +44,35 @@ struct ContentView: View {
                 
                 Spacer()
                 
-                VStack {
-                    Text("INTENSITY")
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                    Slider(value: $filterIntensity)
-                        .onChange(of: filterIntensity, applyFilter)
-                    // Tip: If multiple views adjust the same value, or if it’s not quite so specific what is changing the value, then I’d add the modifier at the end of the view.
-                }
-                .padding(.vertical)
-                
-                HStack {
-                    Button("Change Filter", systemImage: "camera.filters", action: changeFilter)
-                        .confirmationDialog("Select a Filter", isPresented: $showingFilterOptions) {
-                            Button("Sepia Tone") { setFilter(CIFilter.sepiaTone()) }
-                            Button("Vignette") { setFilter(CIFilter.vignette()) }
-                            Button("Crystallize") { setFilter(CIFilter.crystallize()) }
-                            Button("Bloom") { setFilter(CIFilter.bloom()) }
-                            Button("Pixellate") { setFilter(CIFilter.pixellate()) }
-                            Button("Edges") { setFilter(CIFilter.edges()) }
-                            Button("Motion Blur") { setFilter(CIFilter.motionBlur()) }
-                        }
+                if let processedImage { // Only show UI controls when an Image is loaded
+                    VStack {
+                        Text("INTENSITY")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                        Slider(value: $filterIntensity)
+                            .onChange(of: filterIntensity, applyFilter)
+                        // Tip: If multiple views adjust the same value, or if it’s not quite so specific what is changing the value, then I’d add the modifier at the end of the view.
+                    }
+                    .padding(.vertical)
                     
-                    Spacer()
-                    
-                    Button("Share", systemImage: "square.and.arrow.up") {}
+                    HStack {
+                        Button("Change Filter", systemImage: "camera.filters", action: changeFilter)
+                            .confirmationDialog("Select a Filter", isPresented: $showingFilterOptions) {
+                                Button("Sepia Tone") { setFilter(CIFilter.sepiaTone()) }
+                                Button("Vignette") { setFilter(CIFilter.vignette()) }
+                                Button("Crystallize") { setFilter(CIFilter.crystallize()) }
+                                Button("Bloom") { setFilter(CIFilter.bloom()) }
+                                Button("Pixellate") { setFilter(CIFilter.pixellate()) }
+                                Button("Edges") { setFilter(CIFilter.edges()) }
+                                Button("Motion Blur") { setFilter(CIFilter.motionBlur()) }
+                            }
+                        
+                        Spacer()
+                        
+                        Button("Share", systemImage: "square.and.arrow.up") {}
+                    }
+                    .buttonStyle(.glass)
                 }
-                .buttonStyle(.glass)
             }
             .padding()
             .navigationTitle("InstaFilter")
