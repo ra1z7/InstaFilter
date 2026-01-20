@@ -28,7 +28,11 @@ struct ContentView: View {
     @State private var selectedImage: PhotosPickerItem?
     @State private var inputCIImage: CIImage?
     @State private var processedImage: Image?
+    
     @State private var filterIntensity = 0.5
+    @State private var filterRadius = 0.5
+    @State private var filterScale = 0.5
+    
     @State private var showingFilterOptions = false
     @State private var currentFilter: CIFilter = CIFilter.sepiaTone() // Type Erasure: “I only care that this is a CIFilter — nothing more.” Meaning, we lose access to .intensity, and type safety but gain ability to store any filter now
     let ciContext = CIContext() // A Core Image context is an object that’s responsible for rendering a CIImage to a CGImage (an object for converting the recipe for an image into an actual series of pixels we can work with).
@@ -85,12 +89,33 @@ struct ContentView: View {
                 
                 if let processedImage { // Only show UI controls when an Image is loaded
                     VStack {
-                        Text("INTENSITY")
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
-                        Slider(value: $filterIntensity)
-                            .onChange(of: filterIntensity, applyFilter)
-                        // Tip: If multiple views adjust the same value, or if it’s not quite so specific what is changing the value, then I’d add the modifier at the end of the view.
+                        let inputKeys = currentFilter.inputKeys
+                        
+                        if inputKeys.contains(kCIInputIntensityKey) {
+                            Text("INTENSITY")
+                                .font(.footnote)
+                                .foregroundStyle(.secondary)
+                            Slider(value: $filterIntensity)
+                                .onChange(of: filterIntensity, applyFilter)
+                        }
+                        
+                        if inputKeys.contains(kCIInputRadiusKey) {
+                            Text("RADIUS")
+                                .font(.footnote)
+                                .foregroundStyle(.secondary)
+                            Slider(value: $filterRadius)
+                                .onChange(of: filterRadius, applyFilter)
+                        }
+                        
+                        if inputKeys.contains(kCIInputScaleKey) {
+                            Text("SCALE")
+                                .font(.footnote)
+                                .foregroundStyle(.secondary)
+                            Slider(value: $filterScale)
+                                .onChange(of: filterScale, applyFilter)
+                        }
+                        
+                        // Tip: If multiple views adjust the same value, or if it’s not quite so specific what is changing the value, then I’d add the onChange modifier at the end of the view.
                     }
                     .padding(.vertical)
                     
@@ -147,8 +172,8 @@ struct ContentView: View {
         
         let inputKeys = currentFilter.inputKeys
         if inputKeys.contains(kCIInputIntensityKey) { currentFilter.setValue(filterIntensity, forKey: kCIInputIntensityKey) } // kCIInputIntensityKey is another Core Image constant value, and it has the same effect as setting the .intensity parameter of the sepia tone filter. Previously, this was all that the protocol was doing internally anyway, but it did provide valuable extra type safety.
-        if inputKeys.contains(kCIInputRadiusKey) { currentFilter.setValue(filterIntensity * 100, forKey: kCIInputRadiusKey) }
-        if inputKeys.contains(kCIInputScaleKey) { currentFilter.setValue(filterIntensity * 50, forKey: kCIInputScaleKey) }
+        if inputKeys.contains(kCIInputRadiusKey) { currentFilter.setValue(filterRadius * 100, forKey: kCIInputRadiusKey) }
+        if inputKeys.contains(kCIInputScaleKey) { currentFilter.setValue(filterScale * 50, forKey: kCIInputScaleKey) }
         
         guard let ciImage = currentFilter.outputImage else { return }
         guard let cgImage = ciContext.createCGImage(ciImage, from: ciImage.extent) else { return }
